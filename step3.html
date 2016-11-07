@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>WebVR Tutorial</title>
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+
+		<style>
+			body {
+				margin: 0;
+			}
+
+			button {
+				position: absolute;
+				bottom: 10px;
+				right: 10px;
+			}
+		</style>
+	</head>
+	<body>
+
+		<button id="vr">Start VR</button>
+
+		<script src="lib/webvr-polyfill.js"></script>
+
+		<script src="lib/three.min.js"></script>
+		<script src="lib/VRControls.js"></script>
+		<script src="lib/VREffect.js"></script>
+
+		<script>
+
+			var scene, camera, renderer;
+			var controls, effect;
+			var fog;
+			var vrDisplay;
+		
+			var numCubes = 300;	// Number of cubes in the scene
+			var fieldRange = 3000; // The range in 3D space the cubes will be placed
+			var cubes = []; // Array to hold cube objects
+
+			var bgColor = 0x8278B6;
+			var cubeColor = 0x57FFC7
+
+			init();
+			animate();
+
+			function init() {
+
+				// This is your standard three.js set up
+				// Create a scene, camera and a renderer
+			    scene = new THREE.Scene();
+			    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+			    renderer = new THREE.WebGLRenderer();
+			    renderer.setSize( window.innerWidth, window.innerHeight );
+			    document.body.appendChild( renderer.domElement );
+
+			    // Set VR controls
+			    controls = new THREE.VRControls( camera );
+
+			    // Apply VR stereo rendering to renderer.
+				effect = new THREE.VREffect(renderer);
+				effect.setSize(window.innerWidth, window.innerHeight);
+
+				navigator.getVRDisplays().then(function(displays) {
+  					if (displays.length > 0) {
+					    vrDisplay = displays[0];
+					  }
+				});
+
+			    // Set the background and fog just for fun
+			    scene.background = new THREE.Color( bgColor );
+			    scene.fog = new THREE.FogExp2( bgColor, 0.001 )
+
+			    // Create a bunch of cubes
+			    for (var i = 0; i < numCubes; i++) {
+			    	cubes.push(new Cube());
+			    }
+
+			}
+
+			// Cube object adds a cube randomly in space 
+			function Cube() {
+
+				// Standard three.js to create a cube
+				// Each cube needs a material and geometry which is used to create a mesh
+				var material = new THREE.MeshBasicMaterial({
+					wireframe: true,
+					color: cubeColor,
+				});
+				var geometry = new THREE.BoxGeometry( 50, 50, 50 );
+				var mesh = new THREE.Mesh( geometry, material );
+
+				// Give each cube a random position
+				mesh.position.x = (Math.random() * fieldRange) - fieldRange/2;
+				mesh.position.y = (Math.random() * fieldRange) - fieldRange/2;
+				mesh.position.z = (Math.random() * fieldRange) - fieldRange/2;
+
+				// Add cube to scene
+				scene.add(mesh);
+
+				// Rotate the cube a bit
+				this.update = function() {
+					mesh.rotation.x += 0.01;
+					mesh.rotation.y += 0.02;
+				}
+
+			}
+
+			document.querySelector('#vr').addEventListener('click', function() {
+			  vrDisplay.requestPresent([{source: renderer.domElement}]);
+			});
+
+			// Standard way to run an animation in JS
+			// Using requestAnimationFrame
+			function animate() {
+
+			    requestAnimationFrame( animate );
+
+			    // Every frame, animate the cubes with the update method
+			    for (var i = 0; i < numCubes; i++) {
+			    	cubes[i].update();
+			    }
+
+			    // Controls need updating every frame
+			    controls.update();
+
+			    // Render the scene
+			    effect.render( scene, camera );
+
+			}
+
+
+		</script>
+
+	</body>
+
+</html>
