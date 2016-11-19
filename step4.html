@@ -36,8 +36,52 @@
 			var fieldRange = 1500; // The range in 3D space the cubes will be placed
 			var cubes = []; // Array to hold cube objects
 
-			init();
-			animate();
+			var audioContext, analyser, freqDomain, source;
+			var bandLower, bandUpper, bandWidth, bandVal;
+			var request;
+
+			loadAudio();
+
+			function loadAudio() {
+
+				audioContext = new( window.AudioContext || window.webkitAudioContext );
+
+				request = new XMLHttpRequest();
+			    request.open('GET', 'assets/loop.mp3', true);
+			    request.responseType = 'arraybuffer';
+			    request.onload = function() {
+			        audioContext.decodeAudioData(request.response, onBufferload);
+			    };
+			    request.send();
+
+			}
+
+			function onBufferload(buffer) {
+
+				
+			    analyser = audioContext.createAnalyser();
+			    freqDomain = new Uint8Array( analyser.frequencyBinCount );
+
+			    bandLower = Math.floor(analyser.frequencyBinCount * 0.4);
+			    bandUpper = Math.floor(analyser.frequencyBinCount * 0.6);
+			    bandWidth = bandUpper - bandLower;
+
+				source = audioContext.createBufferSource();
+
+	   			// Connect graph
+	   			source.connect(analyser);
+
+				//pipe to speakers
+				analyser.connect( audioContext.destination );
+				  
+				source.buffer = buffer;
+
+				source.loop = true;
+				source.start(0);
+
+				init();
+
+			}
 
 			function init() {
 
@@ -69,6 +113,8 @@
 			    	cubes.push(new Cube());
 			    }
 
+			    animate();
+
 			}
 
 			// Cube object adds a cube randomly in space 
@@ -79,6 +125,7 @@
 				var material = new THREE.MeshNormalMaterial();
 				var geometry = new THREE.BoxGeometry( 50, 50, 50 );
 				var mesh = new THREE.Mesh( geometry, material );
+				var scale;
 
 				// Give each cube a random position
 				mesh.position.x = (Math.random() * fieldRange) - fieldRange/2;
@@ -92,7 +139,26 @@
 				this.update = function() {
 					mesh.rotation.x += 0.01;
 					mesh.rotation.y += 0.02;
+
+					scale = 0.5 + (bandVal*3);
+
+					mesh.scale.set(scale, scale, scale);
 				}
+
+			}
+
+			// Get an average of the audio band
+			function updateAudio() {
+				
+				analyser.getByteFrequencyData(freqDomain);
+
+				var sum = 0;
+
+				for (var i = bandLower; i < bandUpper; i++) {
+					sum += freqDomain[i];
+				}
+
+				bandVal = (sum / bandWidth) / 256;
 
 			}
 
@@ -101,6 +167,8 @@
 			function animate() {
 
 			    requestAnimationFrame( animate );
+
+			    updateAudio();
 
 			    // Every frame, animate the cubes with the update method
 			    for (var i = 0; i < numCubes; i++) {

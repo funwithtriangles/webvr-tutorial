@@ -18,14 +18,10 @@
 		<script>
 
 			var scene, camera, renderer;
-			var fog;
 		
-			var numCubes = 300;	// Number of cubes in the scene
-			var fieldRange = 3000; // The range in 3D space the cubes will be placed
+			var numCubes = 100;	// Number of cubes in the scene
+			var fieldRange = 1500; // The range in 3D space the cubes will be placed
 			var cubes = []; // Array to hold cube objects
-
-			var bgColor = 0x8278B6;
-			var cubeColor = 0x57FFC7
 
 			init();
 			animate();
@@ -40,9 +36,6 @@
 			    renderer.setSize( window.innerWidth, window.innerHeight );
 			    document.body.appendChild( renderer.domElement );
 
-			    // Set the background and fog just for fun
-			    scene.background = new THREE.Color( bgColor );
-			    scene.fog = new THREE.FogExp2( bgColor, 0.001 )
 
 			    // Create a bunch of cubes
 			    for (var i = 0; i < numCubes; i++) {
@@ -56,10 +49,7 @@
 
 				// Standard three.js to create a cube
 				// Each cube needs a material and geometry which is used to create a mesh
-				var material = new THREE.MeshBasicMaterial({
-					wireframe: true,
-					color: cubeColor,
-				});
+				var material = new THREE.MeshNormalMaterial();
 				var geometry = new THREE.BoxGeometry( 50, 50, 50 );
 				var mesh = new THREE.Mesh( geometry, material );
 
