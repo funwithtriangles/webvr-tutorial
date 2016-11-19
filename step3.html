@@ -109,6 +109,15 @@
 			  vrDisplay.requestPresent([{source: renderer.domElement}]);
 			});
 
+			window.addEventListener('resize', onResize);
+			window.addEventListener('vrdisplaypresentchange', onResize);
+
+			function onResize() {
+			  effect.setSize(window.innerWidth, window.innerHeight);
+			  camera.aspect = window.innerWidth / window.innerHeight;
+			  camera.updateProjectionMatrix();
+			}
+
 			// Standard way to run an animation in JS
 			// Using requestAnimationFrame
 			function animate() {
