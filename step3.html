@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>WebVR Tutorial</title>
+		<title>WebVR Tutorial: Step 3</title>
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
 
 		<style>
@@ -34,19 +34,20 @@
 		
 			var numCubes = 100;	// Number of cubes in the scene
 			var fieldRange = 1500; // The range in 3D space the cubes will be placed
-			var cubes = []; // Array to hold cube objects
+			var cubes = []; // Array to hold cube meshes
 
 			init();
 			animate();
 
 			function init() {
 
+				var material, geometry, mesh;
+
 				// This is your standard three.js set up
 				// Create a scene, camera and a renderer
 			    scene = new THREE.Scene();
 			    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
 			    renderer = new THREE.WebGLRenderer();
-			    renderer.setSize( window.innerWidth, window.innerHeight );
 			    document.body.appendChild( renderer.domElement );
 
 			    // Set VR controls
@@ -61,50 +62,44 @@
   					if (displays.length > 0) {
   						// set vrDisplay variable as the first device
 					    vrDisplay = displays[0];
-					  }
+					 }	
 				});
 
-			    // Create a bunch of cubes
+			     // Create a bunch of cubes
 			    for (var i = 0; i < numCubes; i++) {
-			    	cubes.push(new Cube());
+			    	
+			    	// Standard three.js to create a cube
+					// Each cube needs a material and geometry which is used to create a mesh
+					material = new THREE.MeshNormalMaterial();
+					geometry = new THREE.BoxGeometry( 50, 50, 50 );
+					mesh = new THREE.Mesh( geometry, material );
+
+					// Give each cube a random position
+					mesh.position.x = (Math.random() * fieldRange) - fieldRange/2;
+					mesh.position.y = (Math.random() * fieldRange) - fieldRange/2;
+					mesh.position.z = (Math.random() * fieldRange) - fieldRange/2;
+
+					// Add cube to scene
+					scene.add(mesh);
+
+					// Add mesh to global array for use later
+					cubes.push(mesh);
+
 			    }
 
 			}
 
-			// Cube object adds a cube randomly in space 
-			function Cube() {
-
-				// Standard three.js to create a cube
-				// Each cube needs a material and geometry which is used to create a mesh
-				var material = new THREE.MeshNormalMaterial();
-				var geometry = new THREE.BoxGeometry( 50, 50, 50 );
-				var mesh = new THREE.Mesh( geometry, material );
-
-				// Give each cube a random position
-				mesh.position.x = (Math.random() * fieldRange) - fieldRange/2;
-				mesh.position.y = (Math.random() * fieldRange) - fieldRange/2;
-				mesh.position.z = (Math.random() * fieldRange) - fieldRange/2;
-
-				// Add cube to scene
-				scene.add(mesh);
-
-				// Rotate the cube a bit
-				this.update = function() {
-					mesh.rotation.x += 0.01;
-					mesh.rotation.y += 0.02;
-				}
-
-			}
-
+		
 			// Standard way to run an animation in JS
 			// Using requestAnimationFrame
 			function animate() {
 
 			    requestAnimationFrame( animate );
 
-			    // Every frame, animate the cubes with the update method
+			     // Every frame, update each cube's rotation
 			    for (var i = 0; i < numCubes; i++) {
-			    	cubes[i].update();
+			    	cubes[i].rotation.x += 0.01;
+					cubes[i].rotation.y += 0.02;
 			    }
 
 			    // Controls need updating every frame
